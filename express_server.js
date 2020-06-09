@@ -8,6 +8,18 @@ const PORT = 8080;
 
 app.set('view engine', 'ejs');
 
+//6 random alphanumeric characters
+function generateRandomString() {
+  let generatedString = "";
+  let randomIndex = Math.floor((Math.random()*36));
+  const chars="abcdefghijklmnopqrstuvwxyz0123456789"
+  for (let letter = 0; letter < 6; letter++) {
+    generatedString += chars[randomIndex];
+  }
+  return generatedString;
+}
+console.log(generateRandomString());
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
@@ -28,8 +40,14 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
+  console.log(req);
   res.render('urls_new');
 })
+
+app.post('/urls', (req, res) => {
+  console.log(req.body);
+  res.send("Ok");
+});
 
 app.get('/urls/:shortURL', (req, res) => {
   let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
