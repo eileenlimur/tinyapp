@@ -1,0 +1,27 @@
+<!-- Create a new template file inside the views directory called urls_show.ejs. Use the example below to get you started.
+Add a new route in express_server.js which we'll use to render this new template. Use the example below for what this will look like.
+Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
+Pass both of these values to the template in a templateVars object.
+Fill out the urls_show.ejs template to display the long URL and its shortened form. Also include a link (href='#') for creating a new url. -->
+
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <title>URL - TinyApp Example</title>
+</head>
+
+<body>
+  <header>
+    js <%- include('partials/_header') %>
+  </header>
+  <div class="card text-center">
+    <div class="card-header"></div>
+    <div class="card-body">
+      <h5 class="card-title">TinyURL for: <%= longURL %></h5>
+      <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
+    </div>
+  </div>
+</body>
+
+</html>
