@@ -14,7 +14,7 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 
 //generates 6 random alphanumeric characters
-function generateRandomString() {
+const generateRandomString = function () {
   let generatedString = "";
   const chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   for (let letter = 0; letter < 6; letter++) {
@@ -42,6 +42,10 @@ const users = {
   }
 }
 
+const userSearchByEmail = function(email) {
+  return Object.values(users).find(userObj=>userObj.email === email);
+};
+
 app.get("/", (req, res) => {
   let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', user: users[req.cookies['user_id']] };
   res.render("hello_world", templateVars);
@@ -55,6 +59,9 @@ app.get('/register', (req, res) => {
 
 app.post('/register', (req, res) => {
   const email = req.body.email;
+  if (userSearchByEmail(email)) {
+    res.status(403).send('email already registered');
+  }
   const password = req.body.password;
   const id = generateRandomString();
   users[id] = { id, email, password };
