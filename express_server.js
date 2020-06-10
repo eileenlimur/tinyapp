@@ -34,9 +34,13 @@ app.get("/", (req, res) => {
 
 app.post('/login', (req, res) => {
   res.cookie('username', req.body.username);
-  console.log(res.cookie('username', req.body.username));
   res.redirect('/urls')
 });
+
+app.post('/logout', (req, res) => {
+  res.clearCookie('username');
+  res.redirect('/urls')
+})
 
 //show URLS
 app.get("/urls", (req, res) => {
