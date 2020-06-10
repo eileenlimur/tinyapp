@@ -2,7 +2,10 @@ const express = require('express');
 const app = express();
 
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 const PORT = 8080;
 
@@ -23,15 +26,21 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-//home
+
 app.get("/", (req, res) => {
-  let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!' };
+  let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', username: req.cookies['username'] };
   res.render("hello_world", templateVars);
+});
+
+app.post('/login', (req, res) => {
+  res.cookie('username', req.body.username);
+  console.log(res.cookie('username', req.body.username));
+  res.redirect('/urls')
 });
 
 //show URLS
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase};
+  let templateVars = { urls: urlDatabase, username: req.cookies['username']};
   res.render("urls_index", templateVars);
 });
 
@@ -42,7 +51,8 @@ app.get("/urls.json", (req, res) => {
 
 //page to create new shortURL
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  let templateVars = { username: req.cookies['username']};
+  res.render('urls_new', templateVars);
 })
 
 //add new shortURL
@@ -56,11 +66,11 @@ app.post('/urls', (req, res) => {
 //small table showing shortURL matched with longURL
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  let templateVars = { shortURL, longURL: urlDatabase[shortURL] };
-  console.log(templateVars);
+  let templateVars = { shortURL, longURL: urlDatabase[shortURL], username: req.cookies['username']};
   res.render("urls_show", templateVars);
 });
 
+//edit longURL associated with shortURL
 app.post('/urls/:shortURL', (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;                       
   res.redirect('/urls/' + req.params.shortURL);
