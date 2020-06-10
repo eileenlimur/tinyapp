@@ -43,12 +43,13 @@ const users = {
 }
 
 app.get("/", (req, res) => {
-  let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', username: req.cookies['username'] };
+  let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', user: users[req.cookies['user_id']] };
   res.render("hello_world", templateVars);
 });
 
 app.get('/register', (req, res) => {
-  let templateVars = { username: req.cookies['username'] }
+  res.clearCookie('user_id');
+  let templateVars = { user: users[req.cookies['user_id']] }
   res.render('register', templateVars);
 });
 
@@ -73,7 +74,7 @@ app.post('/logout', (req, res) => {
 
 //show URLS
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase, user_id: req.cookies['username']};
+  let templateVars = { urls: urlDatabase, user: users[req.cookies['user_id']]};
   res.render("urls_index", templateVars);
 });
 
@@ -84,7 +85,7 @@ app.get("/urls.json", (req, res) => {
 
 //page to create new shortURL
 app.get('/urls/new', (req, res) => {
-  let templateVars = { username: req.cookies['username']};
+  let templateVars = { user: users[req.cookies['user_id']] };
   res.render('urls_new', templateVars);
 })
 
@@ -99,7 +100,7 @@ app.post('/urls', (req, res) => {
 //small table showing shortURL matched with longURL
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  let templateVars = { shortURL, longURL: urlDatabase[shortURL], username: req.cookies['username']};
+  let templateVars = { shortURL, longURL: urlDatabase[shortURL], user: users[req.cookies['user_id']]};
   res.render("urls_show", templateVars);
 });
 
