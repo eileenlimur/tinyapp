@@ -21,7 +21,12 @@ Also include a link (href='#') for creating a new url. -->
     <div class="card-body">
       <h5 class="card-title">TinyURL for: <%= longURL %></h5>
       <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
-      <p><a href="/urls/new">Shorten a new URL</p></h4>
+      <p><a href="/urls/new">Shorten a new URL</a></p></h4>
+      <form class="form-inline" action="/urls/<%= shortURL %>" method="POST">
+        <label for="longURL">Edit:</label>
+        <input class="form-control" type="text" name="longURL" placeholder="http://" style="width: 300px; margin: 1em">
+        <button type="submit" class="btn btn-primary">Submit</buttoann>
+      </form>
     </div>
   </div>
 </body>

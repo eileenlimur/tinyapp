@@ -55,15 +55,20 @@ app.post('/urls', (req, res) => {
 
 //small table showing shortURL matched with longURL
 app.get('/urls/:shortURL', (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const shortURL = req.params.shortURL;
+  let templateVars = { shortURL, longURL: urlDatabase[shortURL] };
+  console.log(templateVars);
   res.render("urls_show", templateVars);
+});
+
+app.post('/urls/:shortURL', (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;                       
+  res.redirect('/urls/' + req.params.shortURL);
 });
 
 //deletes shortURL
 app.post('/urls/:shortURL/delete', (req, res) => {
-  let templateVars = { shortURL: req.params.shortURL};
-  let urlToDelete = templateVars['shortURL'];
-  delete urlDatabase[urlToDelete];                       
+  delete urlDatabase[req.params.shortURL];                       
   res.redirect('/urls');
 });
 
