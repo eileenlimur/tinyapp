@@ -29,7 +29,7 @@ link for shortening a new URL. dead url for now -->
         <% for(let url in urls) { %>
           <tr>
             <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <td><%= urls[url]['longURL'] %></td>
             <td>
               <form method="POST" action="/urls/<%= url %>/delete">
                 <input type="submit" name="delete<%= url %>" value="Delete" class="btn btn-primary">
