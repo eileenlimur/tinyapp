@@ -7,7 +7,7 @@ const morgan = require('morgan');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
-app.use(morgan('combined'));
+app.use(morgan('tiny'));
 
 const PORT = 8080;
 
@@ -81,10 +81,20 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  if (!userSearchByEmail(req.body.email)) {
+  const email = req.body.email;
+  const password = req.body.password;
+  const user = userSearchByEmail(email)
+  const id = findIdByEmail(email);
+
+  if (!user) {
     res.status(403).send('no such user');
   }
-  res.cookie('user_id', findIdByEmail(req.body.email));
+
+  if (user.password !== password) {
+    res.status(403).send('wrong password');
+  }
+
+  res.cookie('user_id', id);
   res.redirect('/urls')
 });
 
