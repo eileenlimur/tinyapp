@@ -42,6 +42,8 @@ const users = {
   }
 }
 
+const currentUserID = req.cookies['user_id'];
+
 const userSearchByEmail = function(email) {
   return Object.values(users).find(userObj=>userObj.email === email);
 };
@@ -106,8 +108,14 @@ app.post('/logout', (req, res) => {
 
 //show URLS
 app.get("/urls", (req, res) => {
-  const id = req.cookies['user_id'];
-  let templateVars = { urls: urlDatabase, user: users[id]};
+  const userURLS = {};
+  for (let key in urlDatabase) {
+    if (urlDatabase[key]['userID'] === currentUserID) {
+      userURLS[key] = urlDatabase[key];
+    }
+  }
+  console.log(userURLS);
+  let templateVars = { urls: userURLS, user: users[id]};
   res.render("urls_index", templateVars);
 });
 
@@ -118,11 +126,10 @@ app.get("/urls.json", (req, res) => {
 
 //page to create new shortURL
 app.get('/urls/new', (req, res) => {
-  const id = req.cookies['user_id'];
-  if (!id) {
+  if (!currentUserID) {
     res.redirect('/login');
   }
-  let templateVars = { user: users[req.cookies['user_id']] };
+  let templateVars = { user: users[currentUserID] };
   res.render('urls_new', templateVars);
 })
 
@@ -137,6 +144,7 @@ app.post('/urls', (req, res) => {
 
 //small table showing shortURL matched with longURL
 app.get('/urls/:shortURL', (req, res) => {
+  const id = req.cookies['user_id'];
   const shortURL = req.params.shortURL;
   let templateVars = { shortURL, longURL: urlDatabase[shortURL]['longURL'], user: users[req.cookies['user_id']]};
   res.render("urls_show", templateVars);
