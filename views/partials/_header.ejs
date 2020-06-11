@@ -12,6 +12,11 @@
     <form method='POST' action='/logout'>
       <input type="submit" value="Logout">
     </form>
-    <% }%>
+    <% } else { %>
+      <div>
+        <a href="/login">Login</a><br>
+        <a href="/register">Register</a>
+      </div>
+    <% } %>
   </nav>
 </header>
