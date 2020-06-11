@@ -1,19 +1,23 @@
 const express = require('express');
-const app = express();
-const { users } = require('./databases')
-const { urlDatabase } = require('./databases');
+
+const { hashedPassword } = require('./utils');
+const { users, urlDatabase } = require('./databases');
 
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+
+const PORT = 8080;
+const app = express();
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(morgan('tiny'));
 
-const PORT = 8080;
-
 app.set('view engine', 'ejs');
+
+////////////helper functions///////////
 
 //generates 6 random alphanumeric characters
 const generateRandomString = function () {
@@ -26,18 +30,19 @@ const generateRandomString = function () {
   return generatedString;
 }
 
-//helper functions
-
+//returns user object given user's email
 const userSearchByEmail = function(email) {
   return Object.values(users).find(userObj=>userObj.email === email);
 };
 
+//returns user id given email
 const findIdByEmail = function(email) {
   const user = userSearchByEmail(email);
   const id = user['id'];
   return id;
 }
 
+//generates database of user's urls
 const userUrlsDatabase = function(id) {
   const userURLS = {};
   for (let key in urlDatabase) {
@@ -48,6 +53,7 @@ const userUrlsDatabase = function(id) {
   return userURLS;
 }
 
+//checks if a url belongs to a user
 const urlBelongsToUserCheck = function(userId, urlId) {
   if (urlDatabase[urlId]['userID'] === userId) {
     return true;
@@ -72,7 +78,7 @@ app.post('/register', (req, res) => {
   if (userSearchByEmail(email)) {
     res.status(403).send('email already registered');
   }
-  const password = req.body.password;
+  const password = hashedPassword(req.body.password);
   const id = generateRandomString();
   users[id] = { id, email, password };
   res.cookie('user_id', id);
@@ -88,16 +94,15 @@ app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   const user = userSearchByEmail(email)
+  const id = findIdByEmail(email);
 
   if (!user) {
     res.status(403).send('no such user');
   }
-
-  if (user.password !== password) {
+  
+  if (!bcrypt.compareSync(password, user['password'])) {
     res.status(403).send('wrong password');
   }
-
-  const id = findIdByEmail(email);
 
   res.cookie('user_id', id);
   res.redirect('/urls')
@@ -151,6 +156,7 @@ app.get('/urls/:shortURL', (req, res) => {
   }
   let templateVars = { shortURL, longURL: urlDatabase[shortURL]['longURL'], user: users[id], belongs: false};
   if (urlBelongsToUserCheck(id, shortURL)) {
+    console.log('yeah');
     templateVars['belongs'] = true;
   }
   res.render('urls_show', templateVars);
