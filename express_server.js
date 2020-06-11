@@ -69,7 +69,15 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
+app.get('/login', (req, res) => {
+  
+  res.render('login');
+});
+
 app.post('/login', (req, res) => {
+  if (!users[req.body.user_id]) {
+    res.status(403).send('no such user');
+  }
   res.cookie('user_id', req.body.user_id);
   res.redirect('/urls')
 });

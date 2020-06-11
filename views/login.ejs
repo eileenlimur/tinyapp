@@ -1,0 +1,25 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TinyURL register</title>
+  <link rel="stylesheet" href="http://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="ha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+</head>
+
+<body>
+  <header>
+    <%- include('partials/_header') %>
+  </header>
+  <main style="margin: 1em;">
+    <h3>Login</h3>
+    <form method="POST" action="/login">
+      <label for="email">Email</label>
+      <input type="email" name="email" required><br>
+      <label for="password">Password</label>
+      <input type="password" name="password" required><br>
+      <input type="submit" value="Submit">
+    </form>
+  </main>
+</body>
+</html>
