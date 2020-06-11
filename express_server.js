@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const { users } = require('./databases')
+const { urlDatabase } = require('./databases');
 
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -24,25 +26,7 @@ const generateRandomString = function () {
   return generatedString;
 }
 
-const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "peachesli"},
-  "9sm5xK": { longURL: "http://www.google.com", userID: "eileenlimur"}
-};
-
-const users = {
-  "eileenlimur": {
-    id: "eileenlimur",
-    email: "eileen@limur.com",
-    password: "peachesli"
-  },
-  "peachesli": {
-    id: "peachesli",
-    email: "peaches@li.com",
-    password: "eileenlimur"
-  }
-}
-
-const currentUserID = req.cookies['user_id'];
+//helper functions
 
 const userSearchByEmail = function(email) {
   return Object.values(users).find(userObj=>userObj.email === email);
@@ -53,6 +37,24 @@ const findIdByEmail = function(email) {
   const id = user['id'];
   return id;
 }
+
+const userUrlsDatabase = function(id) {
+  const userURLS = {};
+  for (let key in urlDatabase) {
+    if (urlDatabase[key]['userID'] === id) {
+      userURLS[key] = urlDatabase[key];
+    }
+  }
+  return userURLS;
+}
+
+const urlBelongsToUserCheck = function(userId, urlId) {
+  if (urlDatabase[urlId]['userID'] === userId) {
+    return true;
+  }
+};
+
+//routes
 
 app.get("/", (req, res) => {
   let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', user: users[req.cookies['user_id']] };
@@ -108,13 +110,8 @@ app.post('/logout', (req, res) => {
 
 //show URLS
 app.get("/urls", (req, res) => {
-  const userURLS = {};
-  for (let key in urlDatabase) {
-    if (urlDatabase[key]['userID'] === currentUserID) {
-      userURLS[key] = urlDatabase[key];
-    }
-  }
-  console.log(userURLS);
+  const id = req.cookies['user_id'];
+  const userURLS = userUrlsDatabase(id);
   let templateVars = { urls: userURLS, user: users[id]};
   res.render("urls_index", templateVars);
 });
@@ -126,10 +123,11 @@ app.get("/urls.json", (req, res) => {
 
 //page to create new shortURL
 app.get('/urls/new', (req, res) => {
-  if (!currentUserID) {
+  const id = req.cookies['user_id'];
+  if (!id) {
     res.redirect('/login');
   }
-  let templateVars = { user: users[currentUserID] };
+  let templateVars = { user: users[id] };
   res.render('urls_new', templateVars);
 })
 
@@ -145,21 +143,41 @@ app.post('/urls', (req, res) => {
 //small table showing shortURL matched with longURL
 app.get('/urls/:shortURL', (req, res) => {
   const id = req.cookies['user_id'];
+  console.log(id);
   const shortURL = req.params.shortURL;
-  let templateVars = { shortURL, longURL: urlDatabase[shortURL]['longURL'], user: users[req.cookies['user_id']]};
-  res.render("urls_show", templateVars);
+  console.log(shortURL);
+  if (!Object.keys(urlDatabase).includes(shortURL)) {
+    res.status(404).send('This tinyURL leads to nothing!');
+  }
+  let templateVars = { shortURL, longURL: urlDatabase[shortURL]['longURL'], user: users[id], belongs: false};
+  if (urlBelongsToUserCheck(id, shortURL)) {
+    templateVars['belongs'] = true;
+  }
+  res.render('urls_show', templateVars);
 });
 
 //edit longURL associated with shortURL
 app.post('/urls/:shortURL', (req, res) => {
-  urlDatabase[req.params.shortURL] = req.body.longURL;                       
-  res.redirect('/urls/' + req.params.shortURL);
+  let urlId = req.params.shortURL;
+  let userId = req.cookies['user_id'];
+  let longUrl = req.body.longURL
+  if (urlBelongsToUserCheck(userId, urlId)) {
+    urlDatabase[urlId]['longURL'] = longUrl;
+    console.log(urlDatabase[urlId]['longURL']);
+  } else {
+    res.status(403).send('You can\'t edit this URL because it isn\'t yours!');
+  }
+  res.redirect('/urls/' + urlId);
 });
 
 //deletes shortURL
 app.post('/urls/:shortURL/delete', (req, res) => {
-  if (req.cookies['user_id']) {
-    delete urlDatabase[req.params.shortURL];                       
+  let urlId = req.params.shortURL;
+  let userId = req.cookies['user_id'];
+  if (urlBelongsToUserCheck(userId, urlId)) {
+    delete urlDatabase[req.params.shortURL]; 
+  } else {
+    res.status(403).send('You can\'t delete this URL because it isn\'t yours!');
   }
   res.redirect('/urls');
 });
