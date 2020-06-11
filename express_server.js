@@ -46,6 +46,12 @@ const userSearchByEmail = function(email) {
   return Object.values(users).find(userObj=>userObj.email === email);
 };
 
+const findIdByEmail = function(email) {
+  const user = userSearchByEmail(email);
+  const id = user['id'];
+  return id;
+}
+
 app.get("/", (req, res) => {
   let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', user: users[req.cookies['user_id']] };
   res.render("hello_world", templateVars);
@@ -70,15 +76,15 @@ app.post('/register', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  
-  res.render('login');
+  const templateVars = { user: users[req.cookies['user_id']]};
+  res.render('login', templateVars);
 });
 
 app.post('/login', (req, res) => {
-  if (!users[req.body.user_id]) {
+  if (!userSearchByEmail(req.body.email)) {
     res.status(403).send('no such user');
   }
-  res.cookie('user_id', req.body.user_id);
+  res.cookie('user_id', findIdByEmail(req.body.email));
   res.redirect('/urls')
 });
 
