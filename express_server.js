@@ -34,13 +34,13 @@ const generateRandomString = function () {
 }
 
 //returns user object given user's email
-const userSearchByEmail = function(email) {
-  return Object.values(users).find(userObj=>userObj.email === email);
+const userSearchByEmail = function(email, database) {
+  return Object.values(database).find(userObj=>userObj.email === email);
 };
 
 //returns user id given email
 const findIdByEmail = function(email) {
-  const user = userSearchByEmail(email);
+  const user = userSearchByEmail(email, users);
   const id = user['id'];
   return id;
 }
@@ -78,7 +78,7 @@ app.get('/register', (req, res) => {
 
 app.post('/register', (req, res) => {
   const email = req.body.email;
-  if (userSearchByEmail(email)) {
+  if (userSearchByEmail(email, users)) {
     res.status(403).send('email already registered');
   }
   const password = hashedPassword(req.body.password);
@@ -97,7 +97,7 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const user = userSearchByEmail(email)
+  const user = userSearchByEmail(email, users)
   const id = findIdByEmail(email);
 
   if (!user) {
