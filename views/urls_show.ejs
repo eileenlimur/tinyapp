@@ -19,7 +19,7 @@ Also include a link (href='#') for creating a new url. -->
   <% if (!user) { %>
     <h5>Log in to see TinyURLs!</h5>
   <% } else if (belongs !== true) { %>
-    <h5>This TinyURL exists but is not yours. Go to <a href="/u/<%= shortURL %>">/u/<%= shortURL %></a> to see its corresponding longURL!</h5>
+    <h5>This TinyURL exists but is not yours. Go to <a href="/u/<%= shortURL %>">/u/<%= shortURL %></a> to see what it links to!</h5>
   <% } else { %>
     <div class="card text-center">
       <div class="card-header"></div>

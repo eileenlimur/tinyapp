@@ -1,6 +1,11 @@
 const express = require('express');
 
-const { hashedPassword } = require('./utils');
+const { hashedPassword,
+  generateRandomString,
+  userSearchByEmail,
+  findIdByEmail,
+  userUrlsDatabase,
+  urlBelongsToUserCheck } = require('./helpers');
 const { users, urlDatabase } = require('./databases');
 
 const bodyParser = require('body-parser');
@@ -20,50 +25,7 @@ app.use(morgan('tiny'));
 
 app.set('view engine', 'ejs');
 
-////////////helper functions///////////
 
-//generates 6 random alphanumeric characters
-const generateRandomString = function () {
-  let generatedString = "";
-  const chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  for (let letter = 0; letter < 6; letter++) {
-    let randomIndex = Math.floor((Math.random()*36));
-    generatedString += chars[randomIndex];
-  }
-  return generatedString;
-}
-
-//returns user object given user's email
-const userSearchByEmail = function(email, database) {
-  return Object.values(database).find(userObj=>userObj.email === email);
-};
-
-//returns user id given email
-const findIdByEmail = function(email) {
-  const user = userSearchByEmail(email, users);
-  const id = user['id'];
-  return id;
-}
-
-//generates database of user's urls
-const userUrlsDatabase = function(id) {
-  const userURLS = {};
-  for (let key in urlDatabase) {
-    if (urlDatabase[key]['userID'] === id) {
-      userURLS[key] = urlDatabase[key];
-    }
-  }
-  return userURLS;
-}
-
-//checks if a url belongs to a user
-const urlBelongsToUserCheck = function(userId, urlId) {
-  if (urlDatabase[urlId]['userID'] === userId) {
-    return true;
-  }
-};
-
-//routes
 
 app.get("/", (req, res) => {
   let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', user: users[req.session.user_id] };
@@ -71,7 +33,7 @@ app.get("/", (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  req.session.user_id = null;
+  req.session = null;
   let templateVars = { user: null }
   res.render('register', templateVars);
 });
@@ -89,7 +51,7 @@ app.post('/register', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  req.session.user_id = null;
+  req.session = null;
   const templateVars = { user: null};
   res.render('login', templateVars);
 });
@@ -97,8 +59,8 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const user = userSearchByEmail(email, users)
-  const id = findIdByEmail(email);
+  const user = userSearchByEmail(email, users);
+  const id = findIdByEmail(email, users);
 
   if (!user) {
     res.status(403).send('no such user');
@@ -113,14 +75,14 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-  req.session.user_id = null;
+  req.session = null;
   res.redirect('/urls')
 })
 
 //show URLS
 app.get("/urls", (req, res) => {
   const id = req.session.user_id;
-  const userURLS = userUrlsDatabase(id);
+  const userURLS = userUrlsDatabase(id, urlDatabase);
   let templateVars = { urls: userURLS, user: users[id]};
   res.render("urls_index", templateVars);
 });
@@ -146,6 +108,7 @@ app.post('/urls', (req, res) => {
   const longUrl = req.body.longURL;
   const id = req.session.user_id;
   urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
+  console.log(urlDatabase);
   res.redirect('/urls/' + shortUrl);
 });
 
@@ -157,8 +120,7 @@ app.get('/urls/:shortURL', (req, res) => {
     res.status(404).send('This tinyURL leads to nothing!');
   }
   let templateVars = { shortURL, longURL: urlDatabase[shortURL]['longURL'], user: users[id], belongs: false};
-  if (urlBelongsToUserCheck(id, shortURL)) {
-    console.log('yeah');
+  if (urlBelongsToUserCheck(id, shortURL, urlDatabase)) {
     templateVars['belongs'] = true;
   }
   res.render('urls_show', templateVars);
@@ -169,7 +131,7 @@ app.post('/urls/:shortURL', (req, res) => {
   let urlId = req.params.shortURL;
   let userId = req.session.user_id;
   let longUrl = req.body.longURL
-  if (urlBelongsToUserCheck(userId, urlId)) {
+  if (urlBelongsToUserCheck(userId, urlId, urlDatabase)) {
     urlDatabase[urlId]['longURL'] = longUrl;
     console.log(urlDatabase[urlId]['longURL']);
   } else {
@@ -182,7 +144,7 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   let urlId = req.params.shortURL;
   let userId = req.session.user_id;
-  if (urlBelongsToUserCheck(userId, urlId)) {
+  if (urlBelongsToUserCheck(userId, urlId, urlDatabase)) {
     delete urlDatabase[req.params.shortURL]; 
   } else {
     res.status(403).send('You can\'t delete this URL because it isn\'t yours!');

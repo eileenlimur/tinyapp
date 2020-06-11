@@ -1,4 +1,4 @@
-const { hashedPassword } = require('./utils');
+const { hashedPassword } = require('./helpers');
 
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "peachesli"},
