@@ -4,8 +4,8 @@
   "description": "Lighthouse Labs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "./node_modules/.bin/nodemon -L express_server.js"
+    "test": "./node_modules/mocha/bin/mocha",
+    "start": "nodemon -L express_server.js"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,8 @@
     "express": "^4.17.1"
   },
   "devDependencies": {
-    "emmett": "^3.2.0",
+    "chai": "^4.2.0",
+    "mocha": "^8.0.1",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.4"
   }
