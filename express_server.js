@@ -1,15 +1,3 @@
-/*
-/url
-(Stretch) the date the short URL was created
-(Stretch) the number of times the short URL was visited
-(Stretch) the number number of unique visits for the short URL
-/url/:id
-(Stretch) the date the short URL was created
-(Stretch) the number of times the short URL was visited
-(Stretch) the number of unique visits for the short URL
-
-*/
-
 const express = require('express');
 
 const { hashedPassword,
