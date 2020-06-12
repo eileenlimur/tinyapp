@@ -47,6 +47,8 @@ const userUrlsDatabase = function(id, database) {
 const urlBelongsToUserCheck = function(userId, urlId, database) {
   if (database[urlId]['userID'] === userId) {
     return true;
+  } else {
+    return false;
   }
 };
 
