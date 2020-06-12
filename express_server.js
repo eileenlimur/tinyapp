@@ -1,3 +1,27 @@
+/*
+/url
+(Stretch) the date the short URL was created
+(Stretch) the number of times the short URL was visited
+(Stretch) the number number of unique visits for the short URL
+/url/:id
+(Stretch) the date the short URL was created
+(Stretch) the number of times the short URL was visited
+(Stretch) the number of unique visits for the short URL
+(Must) returns HTML with a relevant error message if user not logged in
+GET /u/:id
+if URL for the given ID does not exist:
+(Minor) returns HTML with a relevant error message
+POST /urls/
+if user is not logged in:
+(Minor) returns HTML with a relevant error message
+POST /urls/:id
+if user is not logged in:
+(Minor) returns HTML with a relevant error message
+if user is logged it but does not own the URL for the given ID:
+(Minor) returns HTML with a relevant error message
+
+*/
+
 const express = require('express');
 
 const { hashedPassword,
@@ -25,9 +49,15 @@ app.use(morgan('tiny'));
 
 app.set('view engine', 'ejs');
 
-
-
 app.get("/", (req, res) => {
+  if (req.session) {
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
+});
+
+app.get("/hello", (req, res) => {
   let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', user: users[req.session.user_id] };
   res.render("hello_world", templateVars);
 });
@@ -51,7 +81,9 @@ app.post('/register', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  req.session = null;
+  if (req.session.user_id) {
+    res.redirect('/urls');
+  };
   const templateVars = { user: null};
   res.render('login', templateVars);
 });
@@ -107,6 +139,9 @@ app.post('/urls', (req, res) => {
   const shortUrl = generateRandomString();
   const longUrl = req.body.longURL;
   const id = req.session.user_id;
+  // if(!id) {
+
+  // }
   urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
   console.log(urlDatabase);
   res.redirect('/urls/' + shortUrl);
@@ -137,7 +172,7 @@ app.post('/urls/:shortURL', (req, res) => {
   } else {
     res.status(403).send('You can\'t edit this URL because it isn\'t yours!');
   }
-  res.redirect('/urls/' + urlId);
+  res.redirect('/urls/');
 });
 
 //deletes shortURL
