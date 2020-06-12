@@ -1,10 +1,3 @@
-<!-- INSTRUCTIONS:  Create a new template file inside the views directory called urls_show.ejs.
-Add a new route in express_server.js which we'll use to render this new template.
-Use the shortURL from the route parameter to lookup it's associated longURL from the urlDatabase
-Pass both of these values to the template in a templateVars object.
-Fill out the urls_show.ejs template to display the long URL and its shortened form.
-Also include a link (href='#') for creating a new url. -->
-
 <!DOCTYPE html> 
 <html lang="en">
 <head>
@@ -17,9 +10,9 @@ Also include a link (href='#') for creating a new url. -->
     <%- include('partials/_header') %>
   </header>
   <% if (!user) { %>
-    <h5>Log in to see TinyURLs!</h5>
+    <h3>ERROR: Log in to see TinyURLs!</h3>
   <% } else if (belongs !== true) { %>
-    <h5>This TinyURL exists but is not yours. Go to <a href="/u/<%= shortURL %>">/u/<%= shortURL %></a> to see what it links to!</h5>
+    <h3>This TinyURL exists but is not yours. Go to <a href="/u/<%= shortURL %>">/u/<%= shortURL %></a> to see what it links to!</h3>
   <% } else { %>
     <div class="card text-center">
       <div class="card-header"></div>

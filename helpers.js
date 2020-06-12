@@ -4,6 +4,12 @@ const hashedPassword = function (password) {
   return bcrypt.hashSync(password, saltRounds)
 }
 
+const dateCreated = function() {
+  const today = new Date();
+  let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate()
+  return date;
+}
+
 //generates 6 random alphanumeric characters
 const generateRandomString = function () {
   let generatedString = "";
@@ -54,6 +60,7 @@ const urlBelongsToUserCheck = function(userId, urlId, database) {
 
 module.exports = {
   hashedPassword,
+  dateCreated,
   generateRandomString,
   userSearchByEmail,
   findIdByEmail,

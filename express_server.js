@@ -7,24 +7,13 @@
 (Stretch) the date the short URL was created
 (Stretch) the number of times the short URL was visited
 (Stretch) the number of unique visits for the short URL
-(Must) returns HTML with a relevant error message if user not logged in
-GET /u/:id
-if URL for the given ID does not exist:
-(Minor) returns HTML with a relevant error message
-POST /urls/
-if user is not logged in:
-(Minor) returns HTML with a relevant error message
-POST /urls/:id
-if user is not logged in:
-(Minor) returns HTML with a relevant error message
-if user is logged it but does not own the URL for the given ID:
-(Minor) returns HTML with a relevant error message
 
 */
 
 const express = require('express');
 
 const { hashedPassword,
+  dateCreated,
   generateRandomString,
   userSearchByEmail,
   findIdByEmail,
@@ -50,7 +39,7 @@ app.use(morgan('tiny'));
 app.set('view engine', 'ejs');
 
 app.get("/", (req, res) => {
-  if (req.session) {
+  if (req.session.user_id) {
     res.redirect('/urls');
   } else {
     res.redirect('/login');
@@ -63,7 +52,12 @@ app.get("/hello", (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  req.session = null;
+  if (req.session.user_id) {
+    res.redirect('/urls');
+  }
+  if (req.body.email === "" || req.body.password === "") {
+    res.response(400).send('Fill in all the fields to register!');
+  }
   let templateVars = { user: null }
   res.render('register', templateVars);
 });
@@ -94,12 +88,8 @@ app.post('/login', (req, res) => {
   const user = userSearchByEmail(email, users);
   const id = findIdByEmail(email, users);
 
-  if (!user) {
-    res.status(403).send('no such user');
-  }
-  
-  if (!bcrypt.compareSync(password, user['password'])) {
-    res.status(403).send('wrong password');
+  if (!user || !bcrypt.compareSync(password, user['password'])) {
+    res.status(403).send('There was a problem with your authentification.');
   }
 
   req.session.user_id = id;
@@ -108,7 +98,8 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   req.session = null;
-  res.redirect('/urls')
+  console.log(req.session);
+  res.redirect('/urls');
 })
 
 //show URLS
@@ -139,11 +130,13 @@ app.post('/urls', (req, res) => {
   const shortUrl = generateRandomString();
   const longUrl = req.body.longURL;
   const id = req.session.user_id;
-  // if(!id) {
-
-  // }
-  urlDatabase[shortUrl] = { longURL: longUrl, userID: id };
-  console.log(urlDatabase);
+  if(!id) {
+    res.status(403).send('Log in or register to post and edit TinyURLs.');
+  }
+  if(longUrl === "") {
+    res.status(400).send('You need a longURL for your tinyURL');
+  }
+  urlDatabase[shortUrl] = { longURL: longUrl, userID: id, dateCreated: dateCreated() };
   res.redirect('/urls/' + shortUrl);
 });
 
@@ -151,13 +144,17 @@ app.post('/urls', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const id = req.session.user_id;
   const shortURL = req.params.shortURL;
-  if (!Object.keys(urlDatabase).includes(shortURL)) {
-    res.status(404).send('This tinyURL leads to nothing!');
+  let templateVars = { shortURL, user: users[id], belongs: false};
+  if (!req.session.user_id) {
+    templateVars['user'] = null;
   }
-  let templateVars = { shortURL, longURL: urlDatabase[shortURL]['longURL'], user: users[id], belongs: false};
-  if (urlBelongsToUserCheck(id, shortURL, urlDatabase)) {
-    templateVars['belongs'] = true;
+  if (urlDatabase[shortURL]) {
+    templateVars['longURL'] = urlDatabase[shortURL]['longURL'];
+    if (urlBelongsToUserCheck(id, shortURL, urlDatabase)) {
+      templateVars['belongs'] = true;
+    }
   }
+  console.log(templateVars['user']);
   res.render('urls_show', templateVars);
 });
 
@@ -165,7 +162,15 @@ app.get('/urls/:shortURL', (req, res) => {
 app.post('/urls/:shortURL', (req, res) => {
   let urlId = req.params.shortURL;
   let userId = req.session.user_id;
+  console.log(userId);
   let longUrl = req.body.longURL
+  console.log(longUrl);
+  if (!userId) {
+    res.status(400).send('Login to make and edit tinyURLs');
+  }
+  if (longUrl === "") {
+    res.status(400).send('You need a longURL for your tinyURL');
+  }
   if (urlBelongsToUserCheck(userId, urlId, urlDatabase)) {
     urlDatabase[urlId]['longURL'] = longUrl;
     console.log(urlDatabase[urlId]['longURL']);
@@ -190,7 +195,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 //if shortURL has longURL, go there, else redirect to shortURLMaker
 app.get('/u/:shortURL', (req, res) => {
   if (!Object.keys(urlDatabase).includes(req.params.shortURL)) {
-    res.redirect('/urls/new');
+    res.status(404).send('This tinyURL does not exist.')
   }
   const longUrl = urlDatabase[req.params.shortURL]['longURL'];
   res.redirect(longUrl);
