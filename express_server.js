@@ -47,7 +47,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/hello", (req, res) => {
-  let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs!', user: users[req.session.user_id] };
+  let templateVars = { greeting: 'Hey! Let\'s turn long URLs into short URLs 😍!', user: users[req.session.user_id] };
   res.render("hello_world", templateVars);
 });
 
@@ -110,12 +110,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-//shows URLS in JSON
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-//page to create new shortURL
+//new shortURL creator
 app.get('/urls/new', (req, res) => {
   const id = req.session.user_id;
   if (!id) {
@@ -140,7 +135,7 @@ app.post('/urls', (req, res) => {
   res.redirect('/urls/' + shortUrl);
 });
 
-//small table showing shortURL matched with longURL
+//shortURL landing page
 app.get('/urls/:shortURL', (req, res) => {
   const id = req.session.user_id;
   const shortURL = req.params.shortURL;
@@ -154,7 +149,6 @@ app.get('/urls/:shortURL', (req, res) => {
       templateVars['belongs'] = true;
     }
   }
-  console.log(templateVars['user']);
   res.render('urls_show', templateVars);
 });
 
@@ -205,12 +199,3 @@ app.get('/u/:shortURL', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
-/*
-An unused example of sending an html response directly
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-*/
