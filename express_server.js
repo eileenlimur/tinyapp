@@ -24,6 +24,8 @@ app.use(cookieSession({
 }))
 app.use(morgan('tiny'));
 
+app.use(express.static("public"));
+
 app.set('view engine', 'ejs');
 
 app.get("/", (req, res) => {

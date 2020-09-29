@@ -1,0 +1,18 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+}
+
+.navbar * {
+  align-items: center;
+}
+
+.logout-box {
+  display: flex;
+  flex-direction: row;
+}
+
+.navbar-left-box {
+  display: flex;
+  flex-direction: row;
+}
